@@ -38,9 +38,7 @@ VALIDATE $? "enable mysql server"
 systemctl start mysqld &>>$LOG_FILE
 VALIDATE $? "start mysql server" 
 
-mysql_secure_installation --set-root-pass ExpenseApp@1
-
-VALIDATE $? "setting the root password" 
+ 
 
 mysql -h mysql.joinsankardevops.online -u root -pExpenseApp@1 -e 'show databases;' &>>$LOG_FILE
 if [ $? -ne 0 ]
