@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_Folder="/var/log/expense" 
-SCRIPT_NAME=$(basename "$0" | cut -d '.' -f1)
+SCRIPT_NAME=$(echo "$0" | cut -d '.' -f1)
 TIME_STAMP=$(date +%Y-%m-%d-%H-%M-%S)
 LOG_FILE="$LOG_Folder/$SCRIPT_NAME-$TIME_STAMP.log"
 mkdir -p "$LOG_Folder"
