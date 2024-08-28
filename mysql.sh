@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LOG_Folder="/var/log/expense" 
-SCRIPT_NAME=$( echo $0 | cut -d '.' -f1)
+SCRIPT_NAME=$(basename "$0" | cut -d '.' -f1)
 TIME_STAMP=$(date +%Y-%m-%d-%H-%M-%S)
 LOG_FILE="$LOG_Folder/$SCRIPT_NAME-$TIME_STAMP.log"
 mkdir -p "$LOG_Folder"
@@ -27,26 +27,27 @@ VALIDATE() {
   fi
 }
 
-echo "Script started executing at: $(date)" | tee -a $LOG_FILE
+echo "Script started executing at: $(date)" | tee -a "$LOG_FILE"
 
-dnf install mysql-server -y &>>$LOG_FILE
-VALIDATE $? "installing mysql server"
+# Install MySQL Server
+dnf install mysql-server -y &>>"$LOG_FILE"
+VALIDATE $? "Installing MySQL server"
 
-systemctl enable mysqld &>>$LOG_FILE
-VALIDATE $? "enable mysql server"
+# Enable and start MySQL Server
+systemctl enable mysqld &>>"$LOG_FILE"
+VALIDATE $? "Enabling MySQL server"
 
-systemctl start mysqld &>>$LOG_FILE
-VALIDATE $? "start mysql server" 
+systemctl start mysqld &>>"$LOG_FILE"
+VALIDATE $? "Starting MySQL server" 
 
- 
-
-mysql -h mysql.joinsankardevops.online -u root -pExpenseApp@1 -e 'show databases;' &>>$LOG_FILE
-if [ $? -ne 0 ]
-then
-    echo "MySQL root password is not setup, setting now" &>>$LOG_FILE
-    mysql_secure_installation --set-root-pass ExpenseApp@1
-    VALIDATE $? "Setting UP root password"
+# Check MySQL root password setup
+mysql -h mysql.joinsankardevops.online -u root -pExpenseApp@1 -e 'show databases;' &>>"$LOG_FILE"
+if [ $? -ne 0 ]; then
+    echo "MySQL root password is not set up or incorrect, setting now" &>>"$LOG_FILE"
+    
+    # Set the root password using mysqladmin
+    mysqladmin -u root password 'ExpenseApp@1' &>>"$LOG_FILE"
+    VALIDATE $? "Setting up root password"
 else
-    echo -e "MySQL root password is already setup...$Y SKIPPING $N" | tee -a $LOG_FILE
+    echo -e "MySQL root password is already set up...${Y}SKIPPING${N}" | tee -a "$LOG_FILE"
 fi
-
