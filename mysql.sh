@@ -1,58 +1,53 @@
 #!/bin/bash
 
-LOGS_FOLDER="/var/log/expense"
-SCRIPT_NAME=$(echo $0 | cut -d "." -f1)
-TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)
-LOG_FILE="$LOGS_FOLDER/$SCRIPT_NAME-$TIMESTAMP.log"
-mkdir -p $LOGS_FOLDER
+LOG_Folder="/var/log/expense" 
+SCRIPT_NAME=$(basename "$0" | cut -d '.' -f1)
+TIME_STAMP=$(date +%Y-%m-%d-%H-%M-%S)
+LOG_FILE="$LOG_Folder/$SCRIPT_NAME-$TIME_STAMP.log"
+mkdir -p "$LOG_Folder"
 
-USERID=$(id -u)
+# Define color codes
 R="\e[31m"
 G="\e[32m"
-N="\e[0m"
 Y="\e[33m"
+N="\e[0m"
 
-CHECK_ROOT(){
-    if [ $USERID -ne 0 ]
-    then
-        echo -e "$R Please run this script with root priveleges $N" | tee -a $LOG_FILE
-        exit 1
-    fi
-}
+USERID=$(id -u)
 
-VALIDATE(){
-    if [ $1 -ne 0 ]
-    then
-        echo -e "$2 is...$R FAILED $N"  | tee -a $LOG_FILE
-        exit 1
-    else
-        echo -e "$2 is... $G SUCCESS $N" | tee -a $LOG_FILE
-    fi
-}
-
-echo "Script started executing at: $(date)" | tee -a $LOG_FILE
-
-CHECK_ROOT
-
-dnf install mysql-server -y &>>$LOG_FILE
-VALIDATE $? "Installing MySQL Server"
-
-systemctl enable mysqld &>>$LOG_FILE
-VALIDATE $? "Enabled MySQL Server"
-
-systemctl start mysqld &>>$LOG_FILE
-VALIDATE $? "Started MySQL server"
-
-mysql -h mysql.joinsankardevops.online -u root -pExpenseApp@1 -e 'show databases;' &>>$LOG_FILE
-if [ $? -ne 0 ]
-then
-    echo "MySQL root password is not setup, setting now" &>>$LOG_FILE
-    mysql_secure_installation --set-root-pass ExpenseApp@1
-    VALIDATE $? "Setting UP root password"
-else
-    echo -e "MySQL root password is already setup...$Y SKIPPING $N" | tee -a $LOG_FILE
+if [ $USERID -ne 0 ]; then
+  echo -e "${R}Please run this script with the root user.${N}" | tee -a "$LOG_FILE"
+  exit 1
 fi
 
-# Assignment
-# check MySQL Server is installed or not, enabled or not, started or not
-# implement the above things
+VALIDATE() {
+  if [ $1 -ne 0 ]; then
+    echo -e "${2}...${R}failed${N}" | tee -a "$LOG_FILE"
+  else
+    echo -e "${2}...${G}success${N}" | tee -a "$LOG_FILE"
+  fi
+}
+
+echo "Script started executing at: $(date)" | tee -a "$LOG_FILE"
+
+# Install MySQL Server
+dnf install mysql-server -y &>>"$LOG_FILE"
+VALIDATE $? "Installing MySQL server"
+
+# Enable and start MySQL Server
+systemctl enable mysqld &>>"$LOG_FILE"
+VALIDATE $? "Enabling MySQL server"
+
+systemctl start mysqld &>>"$LOG_FILE"
+VALIDATE $? "Starting MySQL server" 
+
+# Check MySQL root password setup
+mysql -h mysql.joinsankardevops.online -u root -pExpenseApp@1 -e 'show databases;' &>>"$LOG_FILE"
+if [ $? -ne 0 ]; then
+    echo "MySQL root password is not set up or incorrect, setting now" &>>"$LOG_FILE"
+    
+    # Set the root password using mysqladmin
+    mysqladmin -u root password 'ExpenseApp@1' &>>"$LOG_FILE"
+    VALIDATE $? "Setting up root password"
+else
+    echo -e "MySQL root password is already set up...${Y}SKIPPING${N}" | tee -a "$LOG_FILE"
+fi
