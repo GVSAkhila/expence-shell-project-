@@ -47,7 +47,7 @@ if [ $? -ne 0 ]; then
     echo "MySQL root password is not setup, setting now" | tee -a "$LOG_FILE"
     
     # Use mysqladmin to set root password
-   mysql_secure_installation --set-root-pass ExpenseApp@1
+      mysqladmin -u root password 'ExpenseApp@1' &>>"$LOG_FILE"
     VALIDATE $? "Setting UP root password"
 else
     echo -e "MySQL root password is already setup...${Y}SKIPPING${N}" | tee -a "$LOG_FILE"
