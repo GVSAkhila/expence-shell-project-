@@ -42,12 +42,11 @@ VALIDATE $? "Starting MySQL server"
 
 # Check MySQL root password setup
 mysql -h mysql.joinsankardevops.online -u root -pExpenseApp@1 -e 'show databases;' &>>"$LOG_FILE"
-if [ $? -ne 0 ]; then
-    echo "MySQL root password is not set up or incorrect, setting now" &>>"$LOG_FILE"
-    
-    # Set the root password using mysqladmin
-    mysqladmin -u root password 'ExpenseApp@1' &>>"$LOG_FILE"
-    VALIDATE $? "Setting up root password"
+if [ $? -ne 0 ]
+then
+    echo "MySQL root password is not setup, setting now" &>>$LOG_FILE
+    mysql_secure_installation --set-root-pass ExpenseApp@1
+    VALIDATE $? "Setting UP root password"
 else
-    echo -e "MySQL root password is already set up...${Y}SKIPPING${N}" | tee -a "$LOG_FILE"
+    echo -e "MySQL root password is already setup...$Y SKIPPING $N" | tee -a $LOG_FILE
 fi
